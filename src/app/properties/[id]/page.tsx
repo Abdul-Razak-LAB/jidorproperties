@@ -3,76 +3,34 @@ import Link from 'next/link';
 import { prisma, hasDatabase } from '@/lib/prisma';
 import { sampleProperties } from '@/lib/sampleProperties';
 
-type Props = {
-  params: {
-    id: string;
-  };
-};
-
-const sampleProperties = {
-  'sample-1': {
-    id: 'sample-1',
-    title: '4 Bedroom House',
-    description: 'A bright family home in the Greater Accra Region with modern finishes and easy access to local amenities.',
-    propertyType: 'House',
-    status: 'For Sale',
-    price: 2500000,
-    location: { text: 'Greater Accra' },
-    address: { text: 'Plot 12, Community Road' },
-    images: [
-      { url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80', caption: 'Front view' },
-      { url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80', caption: 'Living room' },
-    ],
-  },
-  'sample-2': {
-    id: 'sample-2',
-    title: '2 Bedroom Apartment',
-    description: 'A modern apartment in the Ashanti Region, ideal for young professionals and investors.',
-    propertyType: 'Apartment',
-    status: 'For Rent',
-    price: 680000,
-    location: { text: 'Ashanti' },
-    address: { text: 'Suite 8, City Tower' },
-    images: [
-      { url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80', caption: 'Apartment exterior' },
-      { url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80', caption: 'Bedroom' },
-    ],
-  },
-  'sample-3': {
-    id: 'sample-3',
-    title: '3 Bedroom Townhouse',
-    description: 'A spacious townhouse in the Volta Region with contemporary design and secure parking.',
-    propertyType: 'Townhouse',
-    status: 'New Project',
-    price: 1200000,
-    location: { text: 'Volta' },
-    address: { text: 'Phase 2, Hillview Estate' },
-    images: [
-      { url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80', caption: 'Townhouse entrance' },
-      { url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80', caption: 'Living area' },
-    ],
-  },
-};
-
-export default async function PropertyDetailPage({ params }: Props) {
+export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   let property = null;
 
   if (hasDatabase && prisma) {
     property = await prisma.property.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: { images: true },
     });
   }
 
-  if (!property && params.id in sampleProperties) {
-    property = sampleProperties[params.id as keyof typeof sampleProperties] as any;
+  if (!property && resolvedParams.id in sampleProperties) {
+    property = sampleProperties[resolvedParams.id as keyof typeof sampleProperties] as any;
   }
 
   if (!property) {
     notFound();
   }
 
-  const images = property.images && property.images.length
+  type PropertyImage = {
+    url: string;
+    caption?: string;
+    id?: string;
+    propertyId?: string;
+    sortOrder?: number;
+  };
+
+  const images: PropertyImage[] = property.images && property.images.length
     ? property.images
     : [
         {
