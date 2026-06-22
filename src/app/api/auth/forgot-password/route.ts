@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.RESEND_API_KEY || '';
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const link = `${appUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
-    await sendEmailRaw(apiKey, email, 'Reset your Homes Hub password', `<p>Reset your password: <a href="${link}">Reset password</a></p>`);
+    await sendEmailRaw(apiKey, email, 'Reset your JIDOR PROPERTIES password', `<p>Reset your password: <a href="${link}">Reset password</a></p>`);
   } catch (err) {
     console.warn('Failed to send reset email', err);
   }

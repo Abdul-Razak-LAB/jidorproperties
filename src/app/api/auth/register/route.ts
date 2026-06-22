@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const link = `${appUrl}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
     const html = `<p>Welcome ${name || ''}</p><p>Verify your email: <a href="${link}">Verify account</a></p>`;
-    await sendEmailRaw(apiKey, email, 'Verify your Homes Hub account', html);
+    await sendEmailRaw(apiKey, email, 'Verify your JIDOR PROPERTIES account', html);
   } catch (err) {
     console.warn('Failed to send verification email', err);
   }

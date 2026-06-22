@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 
 type Property = {
   id: string;
@@ -25,8 +25,21 @@ export default function Home() {
   const [location, setLocation] = useState('');
   const [address, setAddress] = useState('');
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactText, setContactText] = useState('');
+  const [contactFormMessage, setContactFormMessage] = useState<string | null>(null);
+  const [isSubmittingContactForm, setIsSubmittingContactForm] = useState(false);
+  const [consultationName, setConsultationName] = useState('');
+  const [consultationEmail, setConsultationEmail] = useState('');
+  const [consultationDate, setConsultationDate] = useState('');
+  const [consultationTime, setConsultationTime] = useState('');
+  const [consultationNotes, setConsultationNotes] = useState('');
+  const [consultationFormMessage, setConsultationFormMessage] = useState<string | null>(null);
+  const [isSubmittingConsultationForm, setIsSubmittingConsultationForm] = useState(false);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -47,15 +60,25 @@ export default function Home() {
 
   const handleFilesChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
-    setSelectedImages(files);
+    if (!files.length) return;
+    setSelectedImages((current) => [...current, ...files]);
+    event.target.value = '';
+  };
+
+  const handleImagePickerOpen = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setSelectedImages((current) => current.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormMessage(null);
 
-    if (selectedImages.length < 5) {
-      setFormMessage('Please upload at least 5 property images.');
+    if (selectedImages.length === 0) {
+      setFormMessage('Please upload at least one property image.');
       return;
     }
 
@@ -90,11 +113,94 @@ export default function Home() {
       setLocation('');
       setAddress('');
       setSelectedImages([]);
+      if (imageInputRef.current) imageInputRef.current.value = '';
       event.currentTarget.reset();
     } catch (error) {
       setFormMessage('Failed to upload property. Please try again.');
     } finally {
       setIsSubmittingForm(false);
+    }
+  };
+
+  const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setContactFormMessage(null);
+
+    if (!contactName.trim() || !contactEmail.trim() || !contactText.trim()) {
+      setContactFormMessage('Please fill in your name, email address, and message.');
+      return;
+    }
+
+    setIsSubmittingContactForm(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          message: contactText,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        setContactFormMessage(error?.error || 'Failed to send message. Please try again.');
+        return;
+      }
+
+      setContactFormMessage('Message sent successfully. We will contact you shortly.');
+      setContactName('');
+      setContactEmail('');
+      setContactText('');
+    } catch (error) {
+      setContactFormMessage('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmittingContactForm(false);
+    }
+  };
+
+  const handleConsultationSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setConsultationFormMessage(null);
+
+    if (!consultationName.trim() || !consultationEmail.trim() || !consultationDate || !consultationTime) {
+      setConsultationFormMessage('Please provide your name, email, preferred date, and time.');
+      return;
+    }
+
+    setIsSubmittingConsultationForm(true);
+
+    try {
+      const response = await fetch('/api/consultation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: consultationName,
+          email: consultationEmail,
+          preferredDate: consultationDate,
+          preferredTime: consultationTime,
+          notes: consultationNotes,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        setConsultationFormMessage(error?.error || 'Failed to book consultation. Please try again.');
+        return;
+      }
+
+      setConsultationFormMessage('Consultation request sent. We will confirm your booking by email.');
+      setConsultationName('');
+      setConsultationEmail('');
+      setConsultationDate('');
+      setConsultationTime('');
+      setConsultationNotes('');
+    } catch (error) {
+      setConsultationFormMessage('Failed to book consultation. Please try again.');
+    } finally {
+      setIsSubmittingConsultationForm(false);
     }
   };
 
@@ -104,10 +210,10 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="relative h-11 w-11 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900">
-              <Image src="/assets/logo.jpeg" alt="Jidorproperties logo" fill className="object-cover" />
+              <Image src="/assets/jogo.jpeg" alt="JIDOR PROPERTIES logo" fill className="object-cover" />
             </div>
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Jidorproperties</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-slate-400">JIDOR PROPERTIES</p>
               <p className="text-xs text-slate-500">Find homes. List spaces.</p>
             </div>
           </div>
@@ -117,6 +223,7 @@ export default function Home() {
             <a className="transition hover:text-white" href="#agents">Agents</a>
             <a className="transition hover:text-white" href="#about">About</a>
             <a className="transition hover:text-white" href="#contact">Contact</a>
+            <Link className="transition hover:text-white" href="/admin/leads">Leads</Link>
           </nav>
           <div className="hidden items-center gap-3 sm:flex">
             <a className="rounded-full border border-slate-700 px-5 py-2 text-sm text-slate-200 transition hover:border-slate-500 hover:text-white" href="#login">Sign In</a>
@@ -144,6 +251,7 @@ export default function Home() {
             <a className="block text-sm text-slate-200 transition hover:text-white" href="#agents" onClick={() => setIsMobileMenuOpen(false)}>Agents</a>
             <a className="block text-sm text-slate-200 transition hover:text-white" href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</a>
             <a className="block text-sm text-slate-200 transition hover:text-white" href="#contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</a>
+            <Link className="block text-sm text-slate-200 transition hover:text-white" href="/admin/leads" onClick={() => setIsMobileMenuOpen(false)}>Leads</Link>
             <div className="mt-3 flex flex-col gap-3">
               <a className="rounded-full border border-slate-700 px-5 py-3 text-sm text-slate-200 transition hover:border-slate-500 hover:text-white text-center" href="#login" onClick={() => setIsMobileMenuOpen(false)}>
                 Sign In
@@ -166,7 +274,7 @@ export default function Home() {
                 Find, buy, rent, or list verified properties with ease.
               </h1>
               <p className="text-lg leading-8 text-slate-300">
-                Jidorproperties connects buyers, renters and sellers with trusted agents and exclusive listings across Ghana.
+                JIDOR PROPERTIES connects buyers, renters and sellers with trusted agents and exclusive listings across Ghana.
               </p>
             </div>
 
@@ -231,11 +339,15 @@ export default function Home() {
           </div>
 
           <div className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900/80 shadow-2xl shadow-slate-950/40">
-            <img
-              className="h-[560px] w-full object-cover"
-              src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80"
-              alt="Luxury property exterior"
-            />
+            <div className="relative h-[560px] w-full">
+              <Image
+                src="/assets/homehub.jpeg"
+                alt="JIDOR PROPERTIES property preview"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/95 via-slate-950/20 to-transparent p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -306,6 +418,9 @@ export default function Home() {
                       src={imageUrl}
                       alt={property.title}
                     />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent px-4 py-4">
+                      <p className="text-sm font-semibold text-white">{property.title}</p>
+                    </div>
                   </div>
                   <div className="space-y-4 px-6 py-6">
                     <div>
@@ -339,7 +454,7 @@ export default function Home() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-amber-300">List Property</p>
-              <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Upload at least 5 images for each property.</h2>
+              <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Owners can upload property images directly.</h2>
             </div>
             <p className="max-w-xl text-sm text-slate-400 lg:text-right">
               Property owners can submit full listings with multiple photos and details directly from the website.
@@ -438,17 +553,52 @@ export default function Home() {
 
             <div className="space-y-3">
               <label className="text-sm font-semibold text-white">Property Images</label>
-              <p className="text-xs text-slate-500">Upload at least 5 images to showcase the listing.</p>
+              <p className="text-xs text-slate-500">Click the button below to upload one or more photos.</p>
               <input
+                ref={imageInputRef}
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handleFilesChange}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 file:mr-4 file:rounded-full file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:text-slate-950"
-                required
+                className="hidden"
               />
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleImagePickerOpen}
+                  className="inline-flex items-center justify-center rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400"
+                >
+                  Upload Images
+                </button>
+                {selectedImages.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImages([])}
+                    className="inline-flex items-center justify-center rounded-full border border-slate-700 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white"
+                  >
+                    Clear All
+                  </button>
+                ) : null}
+              </div>
               {selectedImages.length > 0 ? (
-                <p className="text-sm text-slate-300">Selected {selectedImages.length} image(s).</p>
+                <div className="space-y-3">
+                  <p className="text-sm text-slate-300">Selected {selectedImages.length} image(s).</p>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {selectedImages.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
+                        <p className="truncate text-sm text-slate-200">{file.name}</p>
+                        <p className="mt-1 text-xs text-slate-500">{Math.round(file.size / 1024)} KB</p>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="mt-3 text-xs font-semibold text-amber-300 transition hover:text-amber-200"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ) : null}
             </div>
 
@@ -511,7 +661,7 @@ export default function Home() {
               <p className="text-sm uppercase tracking-[0.3em] text-amber-300">Our Family Connection</p>
               <h2 className="text-3xl font-semibold text-white">Part of the Jidor Group ecosystem.</h2>
               <p className="text-slate-400">
-                Jidorproperties is proud to be part of Jidor Group of Companies, delivering construction, property development, and real estate services with trusted partners and verified listings.
+                JIDOR PROPERTIES is proud to be part of the Jidor Group of Companies, delivering construction, property development, and real estate services with trusted partners and verified listings.
               </p>
             </div>
             <div className="rounded-3xl bg-slate-900 p-6">
@@ -547,16 +697,120 @@ export default function Home() {
               <h2 className="text-3xl font-semibold text-white">Ready to find your perfect home?</h2>
               <p className="text-slate-400">Connect with our team to schedule a consultation, request a property tour, or list your space today.</p>
             </div>
-            <form className="space-y-4 rounded-[2rem] border border-slate-800 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
+            <form onSubmit={handleContactSubmit} className="space-y-4 rounded-[2rem] border border-slate-800 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
               <div className="grid gap-4 sm:grid-cols-2">
-                <input className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20" placeholder="Full Name" />
-                <input className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20" placeholder="Email Address" />
+                <input
+                  value={contactName}
+                  onChange={(event) => setContactName(event.target.value)}
+                  className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                  placeholder="Full Name"
+                  name="name"
+                  autoComplete="name"
+                />
+                <input
+                  value={contactEmail}
+                  onChange={(event) => setContactEmail(event.target.value)}
+                  className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                  placeholder="Email Address"
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                />
               </div>
-              <textarea className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20" rows={4} placeholder="Message" />
-              <button className="w-full rounded-3xl bg-gradient-to-r from-sky-500 to-cyan-400 px-6 py-4 text-sm font-semibold text-slate-950 transition hover:opacity-95">
-                Send Message
+              <textarea
+                value={contactText}
+                onChange={(event) => setContactText(event.target.value)}
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                rows={4}
+                placeholder="Message"
+                name="message"
+              />
+              {contactFormMessage ? <p className="text-sm text-slate-300">{contactFormMessage}</p> : null}
+              <button
+                type="submit"
+                disabled={isSubmittingContactForm}
+                className="w-full rounded-3xl bg-gradient-to-r from-sky-500 to-cyan-400 px-6 py-4 text-sm font-semibold text-slate-950 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isSubmittingContactForm ? 'Sending...' : 'Send Message'}
               </button>
             </form>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-12 max-w-7xl px-6">
+          <div className="rounded-[2rem] border border-amber-500/20 bg-gradient-to-r from-slate-900/90 to-slate-950/90 p-8 shadow-xl shadow-amber-500/10">
+            <div className="grid gap-8 lg:grid-cols-[0.9fr_0.8fr] lg:items-center">
+              <div className="space-y-3">
+                <p className="text-sm uppercase tracking-[0.3em] text-amber-300">Book a Consultation</p>
+                <h3 className="text-2xl font-semibold text-white">Schedule a free property consultation</h3>
+                <p className="text-slate-400">
+                  Speak with our team to review your needs, explore the best listings, and secure the right property investment in Ghana.
+                </p>
+              </div>
+              <form onSubmit={handleConsultationSubmit} className="space-y-4 rounded-[2rem] border border-slate-800 bg-slate-950/90 p-6 shadow-sm shadow-slate-950/20">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-white">Full name</label>
+                    <input
+                      value={consultationName}
+                      onChange={(event) => setConsultationName(event.target.value)}
+                      className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                      placeholder="Your full name"
+                      name="consultationName"
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-white">Email address</label>
+                    <input
+                      value={consultationEmail}
+                      onChange={(event) => setConsultationEmail(event.target.value)}
+                      type="email"
+                      className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                      placeholder="you@example.com"
+                      name="consultationEmail"
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-white">Preferred date</label>
+                  <input
+                    value={consultationDate}
+                    onChange={(event) => setConsultationDate(event.target.value)}
+                    type="date"
+                    className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-white">Preferred time</label>
+                  <input
+                    value={consultationTime}
+                    onChange={(event) => setConsultationTime(event.target.value)}
+                    type="time"
+                    className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-white">Additional notes (optional)</label>
+                  <textarea
+                    value={consultationNotes}
+                    onChange={(event) => setConsultationNotes(event.target.value)}
+                    rows={3}
+                    className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
+                    placeholder="Tell us what type of property you are looking for."
+                  />
+                </div>
+                {consultationFormMessage ? <p className="text-sm text-slate-300">{consultationFormMessage}</p> : null}
+                <button
+                  type="submit"
+                  disabled={isSubmittingConsultationForm}
+                  className="w-full rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isSubmittingConsultationForm ? 'Booking...' : 'Book Consultation'}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </section>

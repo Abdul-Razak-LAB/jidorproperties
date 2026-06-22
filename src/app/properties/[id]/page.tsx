@@ -100,9 +100,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <p className="text-sm uppercase tracking-[0.3em] text-amber-300">Gallery</p>
               <h2 className="mt-3 text-2xl font-semibold text-white">Photo showcase</h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                {images.map((image) => (
-                  <div key={image.url} className="overflow-hidden rounded-[1.75rem] border border-slate-800 bg-slate-950/95">
+                {images.map((image, index) => (
+                  <div key={image.id ?? `${image.url}-${index}`} className="relative overflow-hidden rounded-[1.75rem] border border-slate-800 bg-slate-950/95">
                     <img className="h-60 w-full object-cover" src={image.url} alt={image.caption || property.title} />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent px-4 py-3">
+                      <p className="text-sm font-semibold text-white">{property.title}</p>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Property title is required.' }, { status: 400 });
   }
 
-  if (files.length < 5) {
-    return NextResponse.json({ error: 'Please upload at least 5 images for the property.' }, { status: 400 });
+  if (files.length < 1) {
+    return NextResponse.json({ error: 'Please upload at least one image for the property.' }, { status: 400 });
   }
 
   const property = await prisma.property.create({
