@@ -4,6 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { hasDatabase, prisma } from '@/lib/prisma';
 import { samplePropertyList } from '@/lib/sampleProperties';
 
+function parseOptionalNumber(value: string | undefined) {
+  if (!value) return undefined;
+  const normalized = value.replace(/[^0-9.-]/g, '');
+  if (!normalized) return undefined;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseOptionalInteger(value: string | undefined) {
+  const parsed = parseOptionalNumber(value);
+  if (typeof parsed !== 'number') return undefined;
+  return Number.isInteger(parsed) ? parsed : Math.round(parsed);
+}
+
 export async function GET(req: NextRequest) {
   if (!hasDatabase || !prisma) {
     return NextResponse.json(samplePropertyList, { status: 200 });
@@ -13,8 +27,16 @@ export async function GET(req: NextRequest) {
   const q = url.searchParams.get('q') || undefined;
 
   const results = await prisma.property.findMany({
-    where: q ? { OR: [{ title: { contains: q } }, { description: { contains: q } }] } : {},
-    take: 20,
+    where: q
+      ? {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        }
+      : {},
+    orderBy: { createdAt: 'desc' },
+    take: 50,
     include: { images: true },
   });
 
@@ -30,9 +52,14 @@ export async function POST(req: NextRequest) {
   const title = formData.get('title')?.toString() || '';
   const description = formData.get('description')?.toString() || undefined;
   const propertyType = formData.get('propertyType')?.toString() || undefined;
+  const status = formData.get('status')?.toString() || 'published';
+  const currency = formData.get('currency')?.toString() || 'USD';
   const price = formData.get('price')?.toString() || undefined;
   const location = formData.get('location')?.toString() || undefined;
   const address = formData.get('address')?.toString() || undefined;
+  const bedrooms = formData.get('bedrooms')?.toString() || undefined;
+  const bathrooms = formData.get('bathrooms')?.toString() || undefined;
+  const areaSqm = formData.get('areaSqm')?.toString() || undefined;
   const files = formData.getAll('images').filter((item) => item instanceof File) as File[];
 
   if (!title) {
@@ -48,11 +75,14 @@ export async function POST(req: NextRequest) {
       title,
       description,
       propertyType,
-      status: 'published',
-      price: price ? parseFloat(price) : undefined,
-      currency: 'USD',
+      status,
+      price: parseOptionalNumber(price),
+      currency,
       address: address ? { text: address } : undefined,
       location: location ? { text: location } : undefined,
+      bedrooms: parseOptionalInteger(bedrooms),
+      bathrooms: parseOptionalInteger(bathrooms),
+      areaSqm: parseOptionalNumber(areaSqm),
     },
   });
 

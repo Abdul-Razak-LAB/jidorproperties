@@ -1,4 +1,5 @@
 import { hasDatabase, prisma } from '@/lib/prisma';
+import Link from 'next/link';
 
 function asText(value: unknown) {
   return typeof value === 'string' ? value : '';
@@ -38,6 +39,14 @@ export default async function AdminLeadsPage() {
           <h1 className="text-2xl font-semibold">Leads Inbox</h1>
           <p className="mt-2 text-sm text-slate-400">Stored in Neon via Prisma EmailQueue.</p>
           <p className="mt-3 text-xs text-amber-300">This page is currently unprotected. Add authentication before production use.</p>
+          <div className="mt-4">
+            <Link
+              href="/admin/properties"
+              className="inline-flex rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-200 transition hover:border-slate-500 hover:text-white"
+            >
+              Open Property Dashboard
+            </Link>
+          </div>
         </div>
 
         {leads.length === 0 ? (

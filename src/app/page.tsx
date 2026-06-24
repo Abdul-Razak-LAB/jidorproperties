@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 type Property = {
   id: string;
@@ -17,17 +17,6 @@ type Property = {
 export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [propertyType, setPropertyType] = useState('House');
-  const [price, setPrice] = useState('');
-  const [location, setLocation] = useState('');
-  const [address, setAddress] = useState('');
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
-  const [formMessage, setFormMessage] = useState<string | null>(null);
-  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactText, setContactText] = useState('');
@@ -50,77 +39,11 @@ export default function Home() {
         setProperties(data);
       } catch (error) {
         console.error('Failed to load properties', error);
-      } finally {
-        setIsLoadingProperties(false);
       }
     };
 
     fetchProperties();
   }, []);
-
-  const handleFilesChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    if (!files.length) return;
-    setSelectedImages((current) => [...current, ...files]);
-    event.target.value = '';
-  };
-
-  const handleImagePickerOpen = () => {
-    imageInputRef.current?.click();
-  };
-
-  const handleRemoveImage = (indexToRemove: number) => {
-    setSelectedImages((current) => current.filter((_, index) => index !== indexToRemove));
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setFormMessage(null);
-
-    if (selectedImages.length === 0) {
-      setFormMessage('Please upload at least one property image.');
-      return;
-    }
-
-    setIsSubmittingForm(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('propertyType', propertyType);
-      formData.append('price', price);
-      formData.append('location', location);
-      formData.append('address', address);
-      selectedImages.forEach((file) => formData.append('images', file));
-
-      const response = await fetch('/api/properties', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setFormMessage(error?.error || 'Failed to upload property.');
-        return;
-      }
-
-      setFormMessage('Property created successfully.');
-      setTitle('');
-      setDescription('');
-      setPropertyType('House');
-      setPrice('');
-      setLocation('');
-      setAddress('');
-      setSelectedImages([]);
-      if (imageInputRef.current) imageInputRef.current.value = '';
-      event.currentTarget.reset();
-    } catch (error) {
-      setFormMessage('Failed to upload property. Please try again.');
-    } finally {
-      setIsSubmittingForm(false);
-    }
-  };
 
   const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -223,11 +146,12 @@ export default function Home() {
             <a className="transition hover:text-white" href="#agents">Agents</a>
             <a className="transition hover:text-white" href="#about">About</a>
             <a className="transition hover:text-white" href="#contact">Contact</a>
+            <Link className="transition hover:text-white" href="/admin/properties">Dashboard</Link>
             <Link className="transition hover:text-white" href="/admin/leads">Leads</Link>
           </nav>
           <div className="hidden items-center gap-3 sm:flex">
             <a className="rounded-full border border-slate-700 px-5 py-2 text-sm text-slate-200 transition hover:border-slate-500 hover:text-white" href="#login">Sign In</a>
-            <a className="rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400" href="#list">List Property</a>
+            <Link className="rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400" href="/admin/properties">List Property</Link>
           </div>
           <button
             type="button"
@@ -251,14 +175,15 @@ export default function Home() {
             <a className="block text-sm text-slate-200 transition hover:text-white" href="#agents" onClick={() => setIsMobileMenuOpen(false)}>Agents</a>
             <a className="block text-sm text-slate-200 transition hover:text-white" href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</a>
             <a className="block text-sm text-slate-200 transition hover:text-white" href="#contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</a>
+            <Link className="block text-sm text-slate-200 transition hover:text-white" href="/admin/properties" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
             <Link className="block text-sm text-slate-200 transition hover:text-white" href="/admin/leads" onClick={() => setIsMobileMenuOpen(false)}>Leads</Link>
             <div className="mt-3 flex flex-col gap-3">
               <a className="rounded-full border border-slate-700 px-5 py-3 text-sm text-slate-200 transition hover:border-slate-500 hover:text-white text-center" href="#login" onClick={() => setIsMobileMenuOpen(false)}>
                 Sign In
               </a>
-              <a className="rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 text-center" href="#list" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link className="rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 text-center" href="/admin/properties" onClick={() => setIsMobileMenuOpen(false)}>
                 List Property
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -341,7 +266,7 @@ export default function Home() {
           <div className="relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900/80 shadow-2xl shadow-slate-950/40">
             <div className="relative h-[560px] w-full">
               <Image
-                src="/assets/homehub.jpeg"
+                src="/assets/hero_bg_2.jpg"
                 alt="JIDOR PROPERTIES property preview"
                 fill
                 className="object-cover"
@@ -372,7 +297,7 @@ export default function Home() {
           </div>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {(properties.length > 0 ? properties.slice(0, 3) : [
+            {(properties.length > 0 ? properties.slice(0, 5) : [
               {
                 id: 'sample-1',
                 title: '4 Bedroom House',
@@ -380,7 +305,7 @@ export default function Home() {
                 price: 'GHS 2,500,000',
                 propertyType: 'House',
                 status: 'For Sale',
-                images: [{ url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80' }],
+                images: [{ url: '/assets/img_1.jpg' }],
               },
               {
                 id: 'sample-2',
@@ -389,7 +314,7 @@ export default function Home() {
                 price: 'GHS 680,000',
                 propertyType: 'Apartment',
                 status: 'For Rent',
-                images: [{ url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80' }],
+                images: [{ url: '/assets/2Bedroom.jpg' }],
               },
               {
                 id: 'sample-3',
@@ -398,12 +323,30 @@ export default function Home() {
                 price: 'GHS 1,200,000',
                 propertyType: 'Townhouse',
                 status: 'New Project',
-                images: [{ url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80' }],
+                images: [{ url: '/assets/img_5.jpg' }],
+              },
+              {
+                id: 'sample-4',
+                title: 'Luxury Duplex',
+                location: { text: 'Greater Accra' },
+                price: 'GHS 3,200,000',
+                propertyType: 'Duplex',
+                status: 'For Sale',
+                images: [{ url: '/assets/g1.png' }],
+              },
+              {
+                id: 'sample-5',
+                title: 'Warehouse Space',
+                location: { text: 'Eastern' },
+                price: 'GHS 1,850,000',
+                propertyType: 'House',
+                status: 'New Project',
+                images: [{ url: '/assets/g2.png' }],
               },
             ]).map((property) => {
               const isRealProperty = Boolean(property.id);
               const label = property.status || 'For Sale';
-              const imageUrl = property.images?.[0]?.url || 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80';
+              const imageUrl = property.images?.[0]?.url || '/assets/img_7.jpg';
               const priceText = property.price || 'Price on request';
               const locationText = property.location?.text || 'Unknown location';
 
@@ -446,176 +389,6 @@ export default function Home() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      <section id="list" className="border-b border-slate-800 bg-slate-950/90 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-amber-300">List Property</p>
-              <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Owners can upload property images directly.</h2>
-            </div>
-            <p className="max-w-xl text-sm text-slate-400 lg:text-right">
-              Property owners can submit full listings with multiple photos and details directly from the website.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="mt-10 grid gap-8 rounded-[2rem] border border-slate-800 bg-slate-900/90 p-8 shadow-xl shadow-slate-950/20">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-white">Property Title</label>
-                <input
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
-                  placeholder="3 Bedroom Apartment"
-                  required
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-white">Location</label>
-                <select
-                  value={location}
-                  onChange={(event) => setLocation(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
-                  required
-                >
-                  <option value="">Select a region</option>
-                  <option>Greater Accra</option>
-                  <option>Ashanti</option>
-                  <option>Western</option>
-                  <option>Central</option>
-                  <option>Eastern</option>
-                  <option>Volta</option>
-                  <option>Oti</option>
-                  <option>Northern</option>
-                  <option>North East</option>
-                  <option>Savannah</option>
-                  <option>Upper East</option>
-                  <option>Upper West</option>
-                  <option>Bono</option>
-                  <option>Bono East</option>
-                  <option>Ahafo</option>
-                  <option>Western North</option>
-                </select>
-              </div>
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-white">Price</label>
-                <input
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
-                  placeholder="GHS 2,500,000"
-                  required
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-white">Property Type</label>
-                <select
-                  value={propertyType}
-                  onChange={(event) => setPropertyType(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
-                >
-                  <option>House</option>
-                  <option>Apartment</option>
-                  <option>Townhouse</option>
-                  <option>Land</option>
-                  <option>Warehouse</option>
-                  <option>Construction Site</option>
-                  <option>Uncompleted House</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-white">Address</label>
-              <input
-                value={address}
-                onChange={(event) => setAddress(event.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
-                placeholder="House 5, Adjiriganor Street"
-                required
-              />
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-white">Property Description</label>
-              <textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                rows={5}
-                className="w-full rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none focus:border-amber-400/80 focus:ring-2 focus:ring-amber-500/20"
-                placeholder="Describe the property in a few sentences."
-                required
-              />
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-white">Property Images</label>
-              <p className="text-xs text-slate-500">Click the button below to upload one or more photos.</p>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFilesChange}
-                className="hidden"
-              />
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleImagePickerOpen}
-                  className="inline-flex items-center justify-center rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400"
-                >
-                  Upload Images
-                </button>
-                {selectedImages.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedImages([])}
-                    className="inline-flex items-center justify-center rounded-full border border-slate-700 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:text-white"
-                  >
-                    Clear All
-                  </button>
-                ) : null}
-              </div>
-              {selectedImages.length > 0 ? (
-                <div className="space-y-3">
-                  <p className="text-sm text-slate-300">Selected {selectedImages.length} image(s).</p>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {selectedImages.map((file, index) => (
-                      <div key={`${file.name}-${index}`} className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
-                        <p className="truncate text-sm text-slate-200">{file.name}</p>
-                        <p className="mt-1 text-xs text-slate-500">{Math.round(file.size / 1024)} KB</p>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(index)}
-                          className="mt-3 text-xs font-semibold text-amber-300 transition hover:text-amber-200"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            {formMessage ? (
-              <div className="rounded-3xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-200">
-                {formMessage}
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={isSubmittingForm}
-              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 px-6 py-4 text-sm font-semibold text-slate-950 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmittingForm ? 'Submitting...' : 'Create Listing'}
-            </button>
-          </form>
         </div>
       </section>
 

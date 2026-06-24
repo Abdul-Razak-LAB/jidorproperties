@@ -3,32 +3,48 @@ import Link from 'next/link';
 import { prisma, hasDatabase } from '@/lib/prisma';
 import { sampleProperties } from '@/lib/sampleProperties';
 
+type PropertyImage = {
+  url: string;
+  caption?: string;
+  id?: string;
+  propertyId?: string;
+  sortOrder?: number;
+};
+
+type PropertyView = {
+  id: string;
+  title: string;
+  description?: string | null;
+  location?: { text?: string } | null;
+  address?: { text?: string } | null;
+  price?: number | string | null;
+  propertyType?: string | null;
+  status?: string | null;
+  images?: PropertyImage[];
+};
+
 export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  let property = null;
+  let property: PropertyView | null = null;
 
   if (hasDatabase && prisma) {
-    property = await prisma.property.findUnique({
+    const dbProperty = await prisma.property.findUnique({
       where: { id: resolvedParams.id },
       include: { images: true },
     });
+
+    if (dbProperty) {
+      property = dbProperty as unknown as PropertyView;
+    }
   }
 
   if (!property && resolvedParams.id in sampleProperties) {
-    property = sampleProperties[resolvedParams.id as keyof typeof sampleProperties] as any;
+    property = sampleProperties[resolvedParams.id as keyof typeof sampleProperties];
   }
 
   if (!property) {
     notFound();
   }
-
-  type PropertyImage = {
-    url: string;
-    caption?: string;
-    id?: string;
-    propertyId?: string;
-    sortOrder?: number;
-  };
 
   const images: PropertyImage[] = property.images && property.images.length
     ? property.images

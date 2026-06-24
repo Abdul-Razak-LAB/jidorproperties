@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 import Footer from '@/components/Footer';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 export const metadata: Metadata = {
   title: 'JIDOR PROPERTIES',
@@ -13,6 +15,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-slate-950 text-slate-100">
         <div className="flex min-h-screen flex-col">
           <div className="flex-1">{children}</div>
+          <WhatsAppButton />
+          <ScrollToTopButton />
           <Footer />
         </div>
       </body>

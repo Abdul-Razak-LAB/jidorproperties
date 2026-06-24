@@ -22,15 +22,15 @@ export const sampleProperties: Record<string, SampleProperty> = {
     address: { text: 'Plot 12, Community Road' },
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_1.jpg',
         caption: 'Front view',
       },
       {
-        url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_7.jpg',
         caption: 'Living room',
       },
       {
-        url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_8.jpg',
         caption: 'Dining area',
       },
     ],
@@ -46,15 +46,15 @@ export const sampleProperties: Record<string, SampleProperty> = {
     address: { text: 'Suite 8, City Tower' },
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/2Bedroom.jpg',
         caption: 'Apartment exterior',
       },
       {
-        url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_5.jpg',
         caption: 'Bedroom',
       },
       {
-        url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_7.jpg',
         caption: 'Living area',
       },
     ],
@@ -70,16 +70,48 @@ export const sampleProperties: Record<string, SampleProperty> = {
     address: { text: 'Phase 2, Hillview Estate' },
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_5.jpg',
         caption: 'Townhouse entrance',
       },
       {
-        url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_8.jpg',
         caption: 'Living area',
       },
       {
-        url: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
+        url: '/assets/img_1.jpg',
         caption: 'Bedroom',
+      },
+    ],
+  },
+  'sample-4': {
+    id: 'sample-4',
+    title: 'Luxury Duplex',
+    description: 'A contemporary duplex with airy interiors and premium finishes in a secure estate.',
+    propertyType: 'Duplex',
+    status: 'For Sale',
+    price: 3200000,
+    location: { text: 'Greater Accra' },
+    address: { text: 'Palm Crescent, Cantonments' },
+    images: [
+      {
+        url: '/assets/g1.png',
+        caption: 'Duplex exterior',
+      },
+    ],
+  },
+  'sample-5': {
+    id: 'sample-5',
+    title: 'Warehouse Space',
+    description: 'A stylish family home with a spacious compound and excellent natural lighting.',
+    propertyType: 'House',
+    status: 'New Project',
+    price: 1850000,
+    location: { text: 'Eastern' },
+    address: { text: 'Oak Street, Ridge View' },
+    images: [
+      {
+        url: '/assets/g2.png',
+        caption: 'Family home exterior',
       },
     ],
   },
