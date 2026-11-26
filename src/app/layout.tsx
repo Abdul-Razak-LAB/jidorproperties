@@ -3,21 +3,28 @@ import '../styles/globals.css';
 import Footer from '@/components/Footer';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import RouteBackButton from '@/components/RouteBackButton';
+import PropertyShortlistTray from '@/components/PropertyShortlistTray';
+import { getLocale } from '@/lib/getLocale';
 
 export const metadata: Metadata = {
   title: 'JIDOR PROPERTIES',
   description: 'Premium real estate marketplace powered by Neon and Resend.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-slate-950 text-slate-100">
+    <html lang={locale}>
+      <body className="min-h-screen bg-white text-slate-900">
         <div className="flex min-h-screen flex-col">
+          <RouteBackButton />
           <div className="flex-1">{children}</div>
           <WhatsAppButton />
           <ScrollToTopButton />
-          <Footer />
+          <PropertyShortlistTray locale={locale} />
+          <Footer locale={locale} />
         </div>
       </body>
     </html>

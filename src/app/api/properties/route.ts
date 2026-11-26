@@ -3,6 +3,8 @@ import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import { hasDatabase, prisma } from '@/lib/prisma';
 import { samplePropertyList } from '@/lib/sampleProperties';
+import { getYouTubeVideoId } from '@/lib/youtube';
+import { getAdminSession } from '@/lib/adminSession';
 
 function parseOptionalNumber(value: string | undefined) {
   if (!value) return undefined;
@@ -19,6 +21,9 @@ function parseOptionalInteger(value: string | undefined) {
 }
 
 export async function GET(req: NextRequest) {
+  if (!await getAdminSession()) {
+    return NextResponse.json({ error: 'Admin authentication required.' }, { status: 401 });
+  }
   if (!hasDatabase || !prisma) {
     return NextResponse.json(samplePropertyList, { status: 200 });
   }
@@ -44,6 +49,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!await getAdminSession()) {
+    return NextResponse.json({ error: 'Admin authentication required.' }, { status: 401 });
+  }
   if (!hasDatabase || !prisma) {
     return NextResponse.json({ error: 'Database not configured. Cannot create listings.' }, { status: 503 });
   }
@@ -60,6 +68,8 @@ export async function POST(req: NextRequest) {
   const bedrooms = formData.get('bedrooms')?.toString() || undefined;
   const bathrooms = formData.get('bathrooms')?.toString() || undefined;
   const areaSqm = formData.get('areaSqm')?.toString() || undefined;
+  const areaNotes = formData.get('areaNotes')?.toString().trim() || '';
+  const youtubeUrl = formData.get('youtubeUrl')?.toString().trim() || '';
   const files = formData.getAll('images').filter((item) => item instanceof File) as File[];
 
   if (!title) {
@@ -68,6 +78,15 @@ export async function POST(req: NextRequest) {
 
   if (files.length < 1) {
     return NextResponse.json({ error: 'Please upload at least one image for the property.' }, { status: 400 });
+  }
+
+  if (areaNotes.length > 2000) {
+    return NextResponse.json({ error: 'Neighborhood notes must be 2,000 characters or fewer.' }, { status: 400 });
+  }
+
+  const youtubeVideoId = youtubeUrl ? getYouTubeVideoId(youtubeUrl) : null;
+  if (youtubeUrl && !youtubeVideoId) {
+    return NextResponse.json({ error: 'Enter a valid HTTPS YouTube video URL.' }, { status: 400 });
   }
 
   const property = await prisma.property.create({
@@ -83,6 +102,9 @@ export async function POST(req: NextRequest) {
       bedrooms: parseOptionalInteger(bedrooms),
       bathrooms: parseOptionalInteger(bathrooms),
       areaSqm: parseOptionalNumber(areaSqm),
+      metadata: areaNotes || youtubeVideoId
+        ? { areaNotes: areaNotes || null, youtubeVideoId }
+        : undefined,
     },
   });
 

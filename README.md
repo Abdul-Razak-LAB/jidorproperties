@@ -1,43 +1,40 @@
-# Homes Hub
+# Jidor Properties
 
-Initial project scaffold for the Homes Hub real estate marketplace.
+Real-estate developer website and lead-management application for Jidor Properties.
 
 ## Setup
 
 ```bash
 npm install
+npx prisma generate
 npm run dev
 ```
+
+For environment variables, Neon database setup, Resend configuration, and deployment guidance, see [Operations and setup](./docs/OPERATIONS.md).
 
 ## Project Structure
 
 - `src/app` - Next.js App Router pages and layout
 - `src/styles` - Global Tailwind CSS styles
-- `docs` - Product documentation and PRD
+- `prisma` - Prisma schema for PostgreSQL/Neon
+- `docs` - Product, architecture, API, data, operations, staff, and release documentation
 
-## Prisma / Neon setup
+Start with the [documentation index](./docs/README.md) or go directly to the [product requirements](./docs/PRODUCT_REQUIREMENTS.md).
 
-1. Add your Neon `DATABASE_URL` to a `.env` file.
-2. Install Prisma and generate the client:
+## Database migrations
 
-```bash
-npm install
-npx prisma generate
-```
-
-3. Run migrations during development:
+For local development, configure `DATABASE_URL` in an ignored `.env` file, then apply migrations to a development database:
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate dev --name descriptive_change
 ```
 
-## Resend
-- Add `RESEND_API_KEY` to `.env` to enable transactional emails.
-- Optionally add `CONTACT_RECIPIENT_EMAIL` to receive contact and consultation form submissions.
-- Webhook handler is available at `/api/webhooks/resend`.
+Production deployments should apply reviewed migrations with:
 
-## Notes
+```bash
+npx prisma migrate deploy
+```
 
-- Uses `Next.js`, `TypeScript`, `Tailwind CSS`, `Neon`-ready database planning, and `Resend` for email.
-- Update `.env` with `NEON_DATABASE_URL`, `RESEND_API_KEY`, and other runtime secrets.
-- Contact and consultation submissions are stored in Neon through Prisma `EmailQueue` and can be viewed at `/admin/leads`.
+## Product and readiness
+
+The product requirements and supporting documents distinguish current scaffold behavior from required launch behavior. Do not assume the admin area is protected or that current email queue records constitute durable lead management; see [release gates](./docs/PRODUCT_REQUIREMENTS.md#10-release-gates).

@@ -115,6 +115,30 @@ export const sampleProperties: Record<string, SampleProperty> = {
       },
     ],
   },
+  'sample-6': {
+    id: 'sample-6',
+    title: 'Luxury Waterfront Villa',
+    description: 'An exclusive waterfront villa with premium finishes, expansive terraces, and private leisure spaces in a prime residential area.',
+    propertyType: 'Villa',
+    status: 'For Sale',
+    price: 4900000,
+    location: { text: 'Airport Residential' },
+    address: { text: 'Palm View Drive, Airport Residential' },
+    images: [
+      {
+        url: '/assets/luxury.png',
+        caption: 'Luxury villa exterior',
+      },
+      {
+        url: '/assets/hero_bg_2.jpg',
+        caption: 'Open terrace and skyline view',
+      },
+      {
+        url: '/assets/img_8.jpg',
+        caption: 'Premium living interior',
+      },
+    ],
+  },
 };
 
 export const samplePropertyList = Object.values(sampleProperties);

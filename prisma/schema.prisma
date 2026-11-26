@@ -55,6 +55,17 @@ model PropertyImage {
   sortOrder  Int      @default(0)
 }
 
+model PropertyTypeImage {
+  id           String   @id @default(uuid())
+  propertyType String
+  url          String
+  caption      String?
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([propertyType, sortOrder])
+}
+
 model Message {
   id        String   @id @default(uuid())
   fromId    String

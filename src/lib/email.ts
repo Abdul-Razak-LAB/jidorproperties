@@ -8,7 +8,7 @@ export async function sendEmailRaw(apiKey: string, to: string, subject: string, 
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      from: 'no-reply@homeshub.com',
+      from: process.env.RESEND_FROM_EMAIL || 'Jidor Properties <sales@jidorproperties.com>',
       to,
       subject,
       html,
