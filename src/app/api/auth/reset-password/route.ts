@@ -11,7 +11,11 @@ export async function POST(req: NextRequest) {
 
   // Verify token exists and not expired
   const tokenRow = await prisma.verificationToken.findUnique({ where: { token } });
-  if (!tokenRow || tokenRow.type !== 'reset' || tokenRow.userId !== (await prisma.user.findUnique({ where: { email } }))?.id) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const emailUser = await prisma.user.findFirst({
+    where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+  });
+  if (!tokenRow || tokenRow.type !== 'reset' || tokenRow.userId !== emailUser?.id) {
     return NextResponse.json({ error: 'invalid or expired token' }, { status: 400 });
   }
   if (new Date(tokenRow.expiresAt) < new Date()) {

@@ -14,11 +14,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'email and password required' }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const normalizedEmail = email.trim().toLowerCase();
+  const existing = await prisma.user.findFirst({
+    where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+  });
   if (existing) return NextResponse.json({ error: 'user exists' }, { status: 409 });
 
   const hash = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({ data: { email, passwordHash: hash, name } });
+  const user = await prisma.user.create({ data: { email: normalizedEmail, passwordHash: hash, name } });
 
   // Create verification token
   const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);

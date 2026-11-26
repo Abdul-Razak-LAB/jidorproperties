@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/login')
+      .then((response) => response.json())
+      .then((payload) => setNeedsSetup(Boolean(payload.needsSetup)))
+      .catch(() => setNeedsSetup(false));
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -14,7 +22,7 @@ export default function AdminLoginPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(needsSetup ? '/api/auth/setup' : '/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -36,8 +44,12 @@ export default function AdminLoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 text-slate-900">
       <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-7 shadow-lg shadow-slate-200/70 sm:p-9">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Jidor Properties</p>
-        <h1 className="mt-3 text-2xl font-semibold">Admin sign in</h1>
-        <p className="mt-2 text-sm text-slate-600">Use your authorized staff account to manage listings.</p>
+        <h1 className="mt-3 text-2xl font-semibold">{needsSetup ? 'Create your admin account' : 'Admin sign in'}</h1>
+        <p className="mt-2 text-sm text-slate-600">
+          {needsSetup
+            ? 'No admin account exists yet. Create the initial account to manage listings.'
+            : 'Use your authorized staff account to manage listings.'}
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-7 space-y-4">
           <label className="block text-sm font-medium text-slate-700">
@@ -60,6 +72,7 @@ export default function AdminLoginPage() {
               name="password"
               autoComplete="current-password"
               required
+              minLength={needsSetup ? 10 : undefined}
               maxLength={128}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -72,7 +85,7 @@ export default function AdminLoginPage() {
             disabled={isSubmitting}
             className="w-full rounded-md bg-[#0b2d67] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#123b85] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
+            {isSubmitting ? (needsSetup ? 'Creating account...' : 'Signing in...') : (needsSetup ? 'Create admin account' : 'Sign in')}
           </button>
         </form>
       </section>

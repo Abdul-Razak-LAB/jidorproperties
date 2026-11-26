@@ -3,6 +3,15 @@ import bcrypt from 'bcryptjs';
 import { hasDatabase, prisma } from '@/lib/prisma';
 import { ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE, createAdminSessionToken } from '@/lib/adminSession';
 
+export async function GET() {
+  if (!hasDatabase || !prisma) {
+    return NextResponse.json({ needsSetup: false, error: 'Database not configured' }, { status: 503 });
+  }
+
+  const userCount = await prisma.user.count();
+  return NextResponse.json({ needsSetup: userCount === 0 });
+}
+
 export async function POST(req: NextRequest) {
   if (!hasDatabase || !prisma) {
     return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
@@ -15,7 +24,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+  });
   if (!user || !user.passwordHash) return NextResponse.json({ error: 'invalid credentials' }, { status: 401 });
 
   const ok = await bcrypt.compare(password, user.passwordHash);
